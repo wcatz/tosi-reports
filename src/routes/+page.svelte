@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { themeChange } from 'theme-change';
 	import { browser } from '$app/environment';
+	const numberFormatter = Intl.NumberFormat('en-US');
 
 	// @ts-ignore
 	let bind;
@@ -10,11 +11,14 @@
 		// @ts-ignore
 		bind.focus();
 	});
-	let token = '';
+	let apiKey = '';
 	let result = '';
+	let tokens = '';
+	let key = [];
 	async function getBalance() {
+		'use strict';
 		if (browser) {
-			const encodedValue = encodeURIComponent(token);
+			const encodedValue = encodeURIComponent(apiKey);
 			let response = await fetch(`/api/?apiKey=${encodedValue}`, {
 				method: 'GET',
 				headers: {
@@ -23,13 +27,17 @@
 				}
 			});
 			result = await response.json();
-			token = result.data;
+			tokens = result.data;
+			for (const [key, value] of Object.entries(tokens)) {
+				//console.log(key, value);
+				console.log(tokens[key]['name'], tokens[key]['balance']);
+			}
 		}
 	}
 </script>
 
 <div class="container-fluid mx-6">
-	<div class="navbar bg-base-100">
+	<div class="navbar">
 		<div class="flex-1">
 			<a class="ml-5 normal-case text-xl" href="/">☔ Balance</a>
 		</div>
@@ -38,7 +46,7 @@
 				<input
 					class="hidden"
 					type="checkbox"
-					data-toggle-theme="halloween,lofi"
+					data-toggle-theme="dark,light"
 					data-act-class="ACTIVECLASS"
 				/>
 				<svg
@@ -69,16 +77,41 @@
 				type="text"
 				placeholder="Treasury API Token"
 				bind:this={bind}
-				bind:value={token}
+				bind:value={apiKey}
 				class="input input-bordered w-full max-w-lg"
 			/>
 		</form>
 	</div>
 </div>
+<div class="flex justify-center m-5">
+	<ul class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+		{#each Object.entries(tokens) as [key]}
+			<li class="col-span-1 flex flex-col rounded-lg bg-base-100 text-center">
+				<div class="flex flex-1 flex-col p-4">
+					<h3 class="mb-2 font-medium">{tokens[key]['name']}</h3>
+					<img class="mx-auto mb-2 h-24 w-24" src={tokens[key]['logo']} alt="" />
 
-<pre class="m-2">
-	{result ? JSON.stringify(token, null, 2) : ''}
-</pre>
+					<dl class="mt-1 flex flex-grow flex-col justify-between">Ticker
+						<span
+							>
+							<dt class="">{tokens[key]['ticker']}</dt>
+						</span>
+						<span class="rounded-full bg-nuetral py-1 font-medium">
+							{#if tokens[key]['decimals'] === '0'}
+								{numberFormatter.format(tokens[key]['balance'])}
+							{:else}
+								{numberFormatter.format(tokens[key]['balance'] / 1000000)}
+							{/if}
+						</span>
+						<dt class="">Remaining</dt>
+
+					</dl>
+				</div>
+				<div />
+			</li>
+		{/each}
+	</ul>
+</div>
 
 <style>
 	input {
