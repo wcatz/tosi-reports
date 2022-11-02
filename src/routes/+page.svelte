@@ -104,7 +104,6 @@
 							{/if}
 						</span>
 						<dt class="">Remaining</dt>
-
 					</dl>
 				</div>
 				<div />
